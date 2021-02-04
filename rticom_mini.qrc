@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/skorea.png</file>
+    </qresource>
+</RCC>
