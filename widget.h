@@ -69,14 +69,15 @@ public:
     void setDataSrc(QString);
 
 public slots:
-    void animate(_BINARY_PACKET);
+    void animate(_BINARY_EEW_PACKET, _BINARY_QSCD_PACKET);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
 
 private:
     Painter *mypainter;
-    _BINARY_PACKET mypacket;
+    _BINARY_EEW_PACKET myeewpacket;
+    _BINARY_QSCD_PACKET myqscdpacket;
 };
 
 #endif

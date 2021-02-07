@@ -65,7 +65,7 @@ public:
     Painter();
 
 public:
-    void paint(QPainter *painter, QPaintEvent *event, _BINARY_PACKET myp);
+    void paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET myeewp, _BINARY_QSCD_PACKET myqscd);
 
     int chanID;
     QString dataSrc;

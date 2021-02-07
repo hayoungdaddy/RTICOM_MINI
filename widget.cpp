@@ -71,9 +71,10 @@ void Widget::setDataSrc(QString src)
     mypainter->dataSrc = dataSrc;
 }
 
-void Widget::animate(_BINARY_PACKET myp)
+void Widget::animate(_BINARY_EEW_PACKET eewpacket, _BINARY_QSCD_PACKET qscdpacket)
 {
-    mypacket = myp;
+    myeewpacket = eewpacket;
+    myqscdpacket = qscdpacket;
     update();
 }
 
@@ -82,6 +83,6 @@ void Widget::paintEvent(QPaintEvent *event)
     QPainter painter;
     painter.begin(this);
     painter.setRenderHint(QPainter::Antialiasing);
-    mypainter->paint(&painter, event, mypacket);
+    mypainter->paint(&painter, event, myeewpacket, myqscdpacket);
     painter.end();
 }

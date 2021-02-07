@@ -240,7 +240,7 @@ color:rgb(255, 255, 255);
              <enum>QFrame::StyledPanel</enum>
             </property>
             <property name="text">
-             <string>Data Time (KST)</string>
+             <string>Data Time (UTC)</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
@@ -514,9 +514,9 @@ color:rgb(255, 255, 255);
            </widget>
           </item>
           <item row="3" column="0" colspan="3">
-           <widget class="QComboBox" name="dataSrcCB">
+           <widget class="QComboBox" name="eventListCB">
             <property name="enabled">
-             <bool>false</bool>
+             <bool>true</bool>
             </property>
             <property name="minimumSize">
              <size>
@@ -549,17 +549,7 @@ color:rgb(255, 255, 255);
             </property>
             <item>
              <property name="text">
-              <string>QSCD20, KISS + MPSS, Sensor at the Ground</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>QSCD20, MPSS, Sensor at the Top of the building</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>QSCD20, MPSS, Sensor at the Bottom of the building</string>
+              <string>Select a Available EEW Event</string>
              </property>
             </item>
            </widget>

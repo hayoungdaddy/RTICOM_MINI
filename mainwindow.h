@@ -16,7 +16,6 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -27,11 +26,14 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    RecvMessage *recvmessage;
+    RecvMessage *recvQSCDmessage;
+    RecvMessage *recvEEWMessage;
 
     QTimer *systemTimer;
     QDateTime dataTimeUTC;
-    QDateTime dataTimeKST;
+
+    _BINARY_EEW_PACKET eewpacket;
+    _BINARY_QSCD_PACKET qscdpacket;
 
     bool isNowPlayMode;
     bool isStopMode;
@@ -44,7 +46,8 @@ private:
     QString dataSrc;
 
 private slots:
-    void rvBinMessageFromThread(_BINARY_PACKET);
+    void rvEEWMessageFromThread(_BINARY_EEW_PACKET);
+    void rvQSCDMessageFromThread(_BINARY_QSCD_PACKET);
 
     void doRepeatWork();
     void stopPBClicked();
@@ -60,5 +63,6 @@ private slots:
 
     void chanCBChanged(int);
     void dataSrcCBChanged(int);
+    void eventListCBChanged(int);
 };
 #endif // MAINWINDOW_H

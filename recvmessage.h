@@ -28,7 +28,8 @@ private slots:
     void onBinaryMessageReceived(QByteArray);
 
 signals:
-    void sendBinMessageToMainWindow(_BINARY_PACKET);
+    void sendQSCDMessageToMainWindow(_BINARY_QSCD_PACKET);
+    void sendEEWMessageToMainWindow(_BINARY_EEW_PACKET);
 };
 
 #endif // RECVMESSAGE_H

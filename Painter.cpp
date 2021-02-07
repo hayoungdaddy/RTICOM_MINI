@@ -63,7 +63,7 @@ Painter::Painter()
     backImage = backImage.scaled(IMAGE_X_WIDTH, IMAGE_Y_HEIGHT, Qt::KeepAspectRatio);
 }
 
-void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_PACKET myp)
+void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET myeewp, _BINARY_QSCD_PACKET myqscd)
 {
     QString chanS;
     if(chanID == 0) chanS = "East/West Channel";
@@ -72,30 +72,45 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_PACKET myp)
     else if(chanID == 3) chanS = "Horizontal Channel";
     else if(chanID == 4) chanS = "Total(3D) Channel";
 
-    if(myp.numPGAsta > MAX_NUM_STATION)
+    if(myqscd.numPGAsta > MAX_NUM_STATION)
         return;
+
+    isEvent = false;
 
     painter->fillRect(event->rect(), backImage);
     painter->save();
 
-    _event = myp.event;
+    if(myeewp.numEVENT != 0)
+    {
+        for(int i=0;i<myeewp.numEVENT;i++)
+        {
+            _event = myeewp.eventlist[i];
 
-    if(_event.evid != 0 && _event.evid < 100000) // include event data
+            if(myqscd.dataTime >= _event.eventEpochStartTime &&
+                    myqscd.dataTime < _event.eventEpochStartTime + EVENT_DURATION)
+            {
+                isEvent = true;
+                break;
+            }
+        }
+    }
+
+    if(isEvent)
     {
         // if maxPGAList is empty then insert staList into maxPGAList
         if(maxPGAList.isEmpty())
         {
-            for(int i=0;i<myp.numPGAsta;i++)
+            for(int i=0;i<myqscd.numPGAsta;i++)
             {
-                _STATION sta = myp.staList[i];
+                _STATION sta = myqscd.staList[i];
                 maxPGAList.append(sta);
             }
         }
         else
         {
-            for(int i=0;i<myp.numPGAsta;i++)
+            for(int i=0;i<myqscd.numPGAsta;i++)
             {
-                _STATION sta = myp.staList[i];
+                _STATION sta = myqscd.staList[i];
                 bool needInsert = true;
                 for(int j=0;j<maxPGAList.size();j++)
                 {
@@ -138,8 +153,8 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_PACKET myp)
         painter->setFont(epiFont);
         painter->drawText(QRect(_event.mapX - 25, _event.mapY + 5, 50, 30), Qt::AlignCenter, "M" + QString::number(_event.mag, 'f', 1));
 
+        int eqFlowTimeSec = myqscd.dataTime - _event.eventEpochStartTime;
 
-        int eqFlowTimeSec = myp.dataTime - _event.eventEpochStartTime;
         qreal radiusP = eqFlowTimeSec * P_VEL;
         qreal radiusS = eqFlowTimeSec * S_VEL;
         painter->setPen(Qt::blue);
@@ -147,15 +162,24 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_PACKET myp)
         painter->drawEllipse(QPointF(_event.mapX, _event.mapY), radiusP, radiusP);
         painter->setPen(Qt::red);
         painter->drawEllipse(QPointF(_event.mapX, _event.mapY), radiusS, radiusS);
+
+        painter->setPen(textPen);
+        painter->setFont(textFont);
+
+        QDateTime et; et.setTime_t(_event.eventEpochStartTime);
+
+        painter->drawText(QRect(500, 85, 300, 20), Qt::AlignRight, "EEW ID:" + QString::number(_event.evid));
+        painter->drawText(QRect(500, 105, 300, 20), Qt::AlignRight, et.toString("yyyy-MM-dd hh:mm:ss(UTC)"));
+        painter->drawText(QRect(500, 125, 300, 20), Qt::AlignRight, "M" + QString::number(_event.mag, 'f', 1));
+
     }
     else
     {
-        if(!maxPGAList.isEmpty())
-            maxPGAList.clear();
+        maxPGAList.clear();
 
-        for(int i=0;i<myp.numPGAsta;i++)
+        for(int i=0;i<myqscd.numPGAsta;i++)
         {
-            _STATION sta = myp.staList[i];
+            _STATION sta = myqscd.staList[i];
             QColor col;
             col.setRgb(redColor(sta.lastPGA[chanID]), greenColor(sta.lastPGA[chanID]), blueColor(sta.lastPGA[chanID]));
             QBrush brush = QBrush(col);
@@ -167,8 +191,8 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_PACKET myp)
     painter->restore();
     painter->setPen(textPen);
     painter->setFont(textFont);
-    painter->drawText(QRect(500, 5, 300, 20), Qt::AlignRight, dataSrc.section(",", 1, 1));
-    painter->drawText(QRect(500, 25, 300, 20), Qt::AlignRight, dataSrc.section(",", 2, 2));
+    painter->drawText(QRect(500, 5, 300, 20), Qt::AlignRight, dataSrc.section(",", 0, 0));
+    painter->drawText(QRect(500, 25, 300, 20), Qt::AlignRight, dataSrc.section(",", 1, 1));
     painter->drawText(QRect(500, 45, 300, 20), Qt::AlignRight, chanS);
 }
 

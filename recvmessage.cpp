@@ -17,8 +17,6 @@ void RecvMessage::setup(QUrl server)
 
 void RecvMessage::onConnected()
 {
-    //qDebug() << "WebSocket connected";
-
     connect(&m_webSocket, &QWebSocket::textMessageReceived, this, &RecvMessage::onTextMessageReceived);
     connect(&m_webSocket, &QWebSocket::binaryMessageReceived, this, &RecvMessage::onBinaryMessageReceived);
 
@@ -27,10 +25,20 @@ void RecvMessage::onConnected()
 
 void RecvMessage::onBinaryMessageReceived(QByteArray data)
 {
-    _BINARY_PACKET myp;
-    memcpy(&myp, data.data(), sizeof(_BINARY_PACKET));
+    if(data.length() > 1000)
+    {
+        _BINARY_QSCD_PACKET myp;
+        memcpy(&myp, data.data(), sizeof(_BINARY_QSCD_PACKET));
 
-    emit(sendBinMessageToMainWindow(myp));
+        emit(sendQSCDMessageToMainWindow(myp));
+    }
+    else
+    {
+        _BINARY_EEW_PACKET myp;
+        memcpy(&myp, data.data(), sizeof(_BINARY_EEW_PACKET));
+
+        emit(sendEEWMessageToMainWindow(myp));
+    }
 }
 
 void RecvMessage::onTextMessageReceived(QString message)
