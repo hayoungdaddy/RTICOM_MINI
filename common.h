@@ -17,6 +17,7 @@
 #define PI 3.14159265358979323846
 #define DATA_DURATION 43200
 #define MAX_NUM_STATION 1000
+#define MAX_NUM_EVENT 10
 
 #define STA_LEN 10
 #define CHAN_LEN 5
@@ -81,9 +82,20 @@ typedef struct _event
     float mag;
 } _EVENT;
 
+/*
 typedef struct _binary_packet
 {
     _EVENT event;
+    int numPGAsta;
+    int dataTime;
+    _STATION staList[MAX_NUM_STATION];
+} _BINARY_PACKET;
+*/
+
+typedef struct _binary_packet
+{
+    int numEVENT;
+    _EVENT eventlist[MAX_NUM_EVENT];
     int numPGAsta;
     int dataTime;
     _STATION staList[MAX_NUM_STATION];

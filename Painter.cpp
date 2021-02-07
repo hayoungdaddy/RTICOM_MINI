@@ -78,8 +78,24 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_PACKET myp)
     painter->fillRect(event->rect(), backImage);
     painter->save();
 
-    _event = myp.event;
+    //_event = myp.event;
 
+    numEVENT = myp.numEVENT;
+
+    if(myp.numEVENT != 0 && myp.numEVENT <= MAX_NUM_EVENT)
+    {
+        for(int i=0;i<myp.numEVENT;i++)
+        {
+            if(myp.dataTime >= myp.eventlist[i].eventEpochStartTime
+                    && myp.dataTime < myp.eventlist[i].eventEpochStartTime + EVENT_DURATION)
+            {
+                _event = myp.eventlist[i];
+                break;
+            }
+        }
+    }
+
+    /*
     if(_event.evid != 0 && _event.evid < 100000) // include event data
     {
         // if maxPGAList is empty then insert staList into maxPGAList
@@ -163,13 +179,14 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_PACKET myp)
             painter->drawEllipse(QPoint(sta.mapX, sta.mapY), 5, 5);
         }
     }
+    */
 
     painter->restore();
     painter->setPen(textPen);
     painter->setFont(textFont);
-    painter->drawText(QRect(500, 5, 300, 20), Qt::AlignRight, dataSrc.section(",", 1, 1));
-    painter->drawText(QRect(500, 25, 300, 20), Qt::AlignRight, dataSrc.section(",", 2, 2));
-    painter->drawText(QRect(500, 45, 300, 20), Qt::AlignRight, chanS);
+    painter->drawText(QRect(500, 5, 300, 25), Qt::AlignRight, dataSrc.section(",", 1, 1));
+    painter->drawText(QRect(450, 30, 350, 25), Qt::AlignRight, dataSrc.section(",", 2, 2));
+    painter->drawText(QRect(500, 55, 300, 25), Qt::AlignRight, chanS);
 }
 
 int Painter::redColor(float gal)

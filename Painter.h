@@ -77,6 +77,8 @@ private:
     QImage backImage;
 
     _EVENT _event;
+    int numEVENT;
+    _EVENT eventlist[MAX_NUM_EVENT];
     bool isEvent;
 
     QList<_STATION> maxPGAList;

@@ -8,13 +8,30 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    recvmessage = new RecvMessage(this);
-    connect(recvmessage, SIGNAL(sendBinMessageToMainWindow(_BINARY_PACKET)), this, SLOT(rvBinMessageFromThread(_BINARY_PACKET)));
-    if(!recvmessage->isRunning())
+    recvmessage_G = new RecvMessage(this);
+    connect(recvmessage_G, SIGNAL(sendBinMessageToMainWindow(_BINARY_PACKET)), this, SLOT(rvBinMessageFromThread(_BINARY_PACKET)));
+    if(!recvmessage_G->isRunning())
     {
-        recvmessage->setup(QUrl("ws://10.65.0.3:30900"));
-        recvmessage->start();
+        recvmessage_G->setup(QUrl("ws://127.0.0.1:30910"));
+        recvmessage_G->start();
     }
+
+    /*
+    recvmessage_T = new RecvMessage(this);
+    connect(recvmessage_T, SIGNAL(sendBinMessageToMainWindow(_BINARY_PACKET)), this, SLOT(rvBinMessageFromThread(_BINARY_PACKET)));
+    if(!recvmessage_T->isRunning())
+    {
+        recvmessage_T->setup(QUrl("ws://10.65.0.3:30910"));
+        recvmessage_T->start();
+    }
+    recvmessage_B = new RecvMessage(this);
+    connect(recvmessage_B, SIGNAL(sendBinMessageToMainWindow(_BINARY_PACKET)), this, SLOT(rvBinMessageFromThread(_BINARY_PACKET)));
+    if(!recvmessage_B->isRunning())
+    {
+        recvmessage_B->setup(QUrl("ws://10.65.0.3:30920"));
+        recvmessage_B->start();
+    }
+    */
 
     systemTimer = new QTimer;
     connect(systemTimer, SIGNAL(timeout()), this, SLOT(doRepeatWork()));
@@ -111,18 +128,17 @@ void MainWindow::setDialAndLCD(QDateTime time)
 
 QDateTime MainWindow::findDataTimeUTC()
 {
-    QDateTime time;
-    time.setTimeSpec(Qt::UTC);
-    if(ui->dateDial->value() == 1)
-        time.setDate(QDate::currentDate());
-    else
-        time.setDate(QDate::currentDate().addDays(-1));
+    QDateTime time = QDateTime::currentDateTimeUtc();
+    time = convertKST(time);
+
+    if(ui->dateDial->value() != 1)
+        time = time.addDays(-1);
 
     int hour = ui->hourDial->value();
     int min = ui->minDial->value();
     int sec = ui->secDial->value();
-
     QTime t; t.setHMS(hour, min, sec);
+
     time.setTime(t);
 
     time = convertUTC(time);
@@ -183,6 +199,7 @@ void MainWindow::dataSrcCBChanged(int dataSrcIndex)
 {
     dataSrc = ui->dataSrcCB->currentText();
     native->setDataSrc(dataSrc);
+    dataSrcID = dataSrcIndex;
 }
 
 void MainWindow::doRepeatWork()
@@ -203,14 +220,24 @@ void MainWindow::doRepeatWork()
     setDialAndLCD(dataTimeUTC);
 
     bool valid = timeCheck(dataTimeUTC);
+
+    qDebug() << dataTimeUTC;
     if(valid)
-        recvmessage->sendTextMessage(QString::number(dataTimeUTC.toTime_t()));
+    {
+        if(dataSrcID == 0)
+            recvmessage_G->sendTextMessage(QString::number(dataTimeUTC.toTime_t()));
+        else if(dataSrcID == 1)
+            recvmessage_T->sendTextMessage(QString::number(dataTimeUTC.toTime_t()));
+        else if(dataSrcID == 2)
+            recvmessage_B->sendTextMessage(QString::number(dataTimeUTC.toTime_t()));
+    }
     else
     {
         ui->numStaLCD->display("0");
         _BINARY_PACKET packet;
         packet.numPGAsta = 0;
-        packet.event.evid = 0;
+        //packet.event.evid = 0;
+        packet.numEVENT = 0;
         native->animate(packet);
     }
 }

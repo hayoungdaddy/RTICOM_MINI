@@ -27,7 +27,9 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    RecvMessage *recvmessage;
+    RecvMessage *recvmessage_G;
+    RecvMessage *recvmessage_T;
+    RecvMessage *recvmessage_B;
 
     QTimer *systemTimer;
     QDateTime dataTimeUTC;
@@ -42,6 +44,7 @@ private:
 
     int chanID;
     QString dataSrc;
+    int dataSrcID;
 
 private slots:
     void rvBinMessageFromThread(_BINARY_PACKET);
