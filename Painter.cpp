@@ -148,7 +148,7 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET my
         painter->setBrush(brush);
         painter->drawEllipse(QPoint(_event.mapX, _event.mapY), 8, 8);
         painter->setBrush(Qt::white);
-        painter->drawRect(QRect(_event.mapX - 20, _event.mapY + 14, 40, 15));
+        painter->drawRect(QRect(_event.mapX - 20, _event.mapY + 12, 40, 15));
         painter->setPen(textPen);
         painter->setFont(epiFont);
         painter->drawText(QRect(_event.mapX - 25, _event.mapY + 5, 50, 30), Qt::AlignCenter, "M" + QString::number(_event.mag, 'f', 1));
@@ -166,10 +166,12 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET my
         painter->setPen(textPen);
         painter->setFont(textFont);
 
-        QDateTime et; et.setTime_t(_event.eventEpochStartTime);
+        QDateTime et;
+        et.setTimeSpec(Qt::UTC);
+        et.setTime_t(_event.eventEpochStartTime);
 
         painter->drawText(QRect(500, 85, 300, 20), Qt::AlignRight, "EEW ID:" + QString::number(_event.evid));
-        painter->drawText(QRect(500, 105, 300, 20), Qt::AlignRight, et.toString("yyyy-MM-dd hh:mm:ss(UTC)"));
+        painter->drawText(QRect(500, 105, 300, 20), Qt::AlignRight, et.toString("yyyy-MM-dd hh:mm:ss") + " (UTC)");
         painter->drawText(QRect(500, 125, 300, 20), Qt::AlignRight, "M" + QString::number(_event.mag, 'f', 1));
 
     }

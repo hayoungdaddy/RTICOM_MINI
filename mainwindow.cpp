@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(recvEEWMessage, SIGNAL(sendEEWMessageToMainWindow(_BINARY_EEW_PACKET)), this, SLOT(rvEEWMessageFromThread(_BINARY_EEW_PACKET)));
     if(!recvEEWMessage->isRunning())
     {
-        recvEEWMessage->setup(QUrl("ws://10.65.0.3:30900"));
+        recvEEWMessage->setup(QUrl("ws://10.65.0.60:30900"));
         recvEEWMessage->start();
     }
 
@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(recvQSCDmessage, SIGNAL(sendQSCDMessageToMainWindow(_BINARY_QSCD_PACKET)), this, SLOT(rvQSCDMessageFromThread(_BINARY_QSCD_PACKET)));
     if(!recvQSCDmessage->isRunning())
     {
-        recvQSCDmessage->setup(QUrl("ws://10.65.0.3:30910"));
+        recvQSCDmessage->setup(QUrl("ws://10.65.0.60:30910"));
         recvQSCDmessage->start();
     }
 
@@ -225,7 +225,7 @@ void MainWindow::doRepeatWork()
     if(isNowPlayMode)
     {
         QDateTime systemTimeUTC = QDateTime::currentDateTimeUtc();
-        dataTimeUTC = systemTimeUTC.addSecs(- SECNODS_FOR_ALIGN_QSCD); // GMT  
+        dataTimeUTC = systemTimeUTC.addSecs(- SECNODS_FOR_ALIGN_QSCD); // GMT
     }
     else
     {
@@ -280,8 +280,11 @@ void MainWindow::rvEEWMessageFromThread(_BINARY_EEW_PACKET packet)
         for(int i=eewpacket.numEVENT-1;i>=0;i--)
         {
             QDateTime et;
+            et.setTimeSpec(Qt::UTC);
             et.setTime_t(eewpacket.eventlist[i].eventEpochStartTime);
+
             QString eventName = et.toString("yyyy-MM-dd hh:mm:ss") + " M" + QString::number(eewpacket.eventlist[i].mag, 'f', 1);
+
             events << eventName;
         }
     }

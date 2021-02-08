@@ -68,4 +68,14 @@ typedef struct _binary_qscd_packet
     _STATION staList[MAX_NUM_STATION];
 } _BINARY_QSCD_PACKET;
 
+static QDateTime convertKST(QDateTime utc)
+{
+    return utc.addSecs(9 * 3600);
+}
+
+static QDateTime convertUTC(QDateTime kst)
+{
+    return kst.addSecs(-(9 * 3600));
+}
+
 #endif // COMMON_H
