@@ -110,38 +110,39 @@ void MainWindow::currentPBClicked()
     playPBClicked();
 }
 
-void MainWindow::setDialAndLCD(QDateTime time)
+void MainWindow::setDialAndLCD(QDateTime dtUTC)
 {
-    ui->dataTimeLCD->display(time.toString("yy-MM-dd hh:mm:ss"));
+    ui->dataTimeLCD->display(dtUTC.toString("yy-MM-dd hh:mm:ss"));
 
-    QDateTime dateTime = QDateTime::currentDateTimeUtc();
+    QDateTime nowUTC = QDateTime::currentDateTimeUtc();
 
-    if(dateTime.date() == time.date())
+    if(dtUTC.date() == nowUTC.date())
         ui->dateDial->setValue(1);
     else
         ui->dateDial->setValue(0);
-    ui->hourDial->setValue(time.time().hour());
-    ui->minDial->setValue(time.time().minute());
-    ui->secDial->setValue(time.time().second());
+    ui->hourDial->setValue(dtUTC.time().hour());
+    ui->minDial->setValue(dtUTC.time().minute());
+    ui->secDial->setValue(dtUTC.time().second());
 }
 
 QDateTime MainWindow::findDataTimeUTC()
 {
-    QDateTime time;
-    time.setTimeSpec(Qt::UTC);
+    QDateTime dtUTC;
+    dtUTC.setTimeSpec(Qt::UTC);
     if(ui->dateDial->value() == 1)
-        time.setDate(QDate::currentDate());
+        dtUTC = QDateTime::currentDateTimeUtc();
     else
-        time.setDate(QDate::currentDate().addDays(-1));
+        dtUTC = QDateTime::currentDateTimeUtc().addDays(-1);
+
 
     int hour = ui->hourDial->value();
     int min = ui->minDial->value();
     int sec = ui->secDial->value();
 
     QTime t; t.setHMS(hour, min, sec);
-    time.setTime(t);
+    dtUTC.setTime(t);
 
-    return time;
+    return dtUTC;
 }
 
 void MainWindow::dDialChanged(int date)
@@ -149,15 +150,15 @@ void MainWindow::dDialChanged(int date)
     if(isNowPlayMode)
         return;
 
-    QDateTime today;
+    QDateTime nowUTC;
 
     if(date == 1)
-        today = QDateTime::currentDateTimeUtc();
+        nowUTC = QDateTime::currentDateTimeUtc();
     else
-        today = QDateTime::currentDateTimeUtc().addDays(-1);
+        nowUTC = QDateTime::currentDateTimeUtc().addDays(-1);
 
     if(isStopMode)
-        ui->dateLB->setText(today.toString("MM-dd"));
+        ui->dateLB->setText(nowUTC.toString("MM-dd"));
 }
 
 void MainWindow::hDialChanged(int hour)
