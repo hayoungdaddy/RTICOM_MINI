@@ -246,6 +246,7 @@ void MainWindow::doRepeatWork()
     {
         ui->numStaLCD->display("0");
         _BINARY_QSCD_PACKET packet;
+        packet.dataTime = 0;
         packet.numPGAsta = 0;
         native->animate(eewpacket, packet);
     }

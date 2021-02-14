@@ -66,11 +66,11 @@ Painter::Painter()
 void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET myeewp, _BINARY_QSCD_PACKET myqscd)
 {
     QString chanS;
-    if(chanID == 0) chanS = "East/West Channel";
-    else if(chanID == 1) chanS = "North/South Channel";
-    else if(chanID == 2) chanS = "Up/Down Channel";
-    else if(chanID == 3) chanS = "Horizontal Channel";
-    else if(chanID == 4) chanS = "Total(3D) Channel";
+    if(chanID == 0) chanS = "East/West PGA";
+    else if(chanID == 1) chanS = "North/South PGA";
+    else if(chanID == 2) chanS = "Up/Down PGA";
+    else if(chanID == 3) chanS = "Horizontal PGA";
+    else if(chanID == 4) chanS = "Total(3-Axis) PGA";
 
     if(myqscd.numPGAsta > MAX_NUM_STATION)
         return;
@@ -179,14 +179,24 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET my
     {
         maxPGAList.clear();
 
-        for(int i=0;i<myqscd.numPGAsta;i++)
+        if(myqscd.dataTime != 0)
         {
-            _STATION sta = myqscd.staList[i];
-            QColor col;
-            col.setRgb(redColor(sta.lastPGA[chanID]), greenColor(sta.lastPGA[chanID]), blueColor(sta.lastPGA[chanID]));
-            QBrush brush = QBrush(col);
-            painter->setBrush(brush);
-            painter->drawEllipse(QPoint(sta.mapX, sta.mapY), 5, 5);
+            for(int i=0;i<myqscd.numPGAsta;i++)
+            {
+                _STATION sta = myqscd.staList[i];
+                QColor col;
+                col.setRgb(redColor(sta.lastPGA[chanID]), greenColor(sta.lastPGA[chanID]), blueColor(sta.lastPGA[chanID]));
+                QBrush brush = QBrush(col);
+                painter->setBrush(brush);
+                painter->drawEllipse(QPoint(sta.mapX, sta.mapY), 5, 5);
+            }
+        }
+        else
+        {
+            painter->setPen(textPen);
+            painter->setFont(textFont);
+            painter->drawText(QRect(0, IMAGE_Y_HEIGHT/2 - 50, IMAGE_X_WIDTH, 25),
+                              Qt::AlignCenter, "There is no available data");
         }
     }
 
