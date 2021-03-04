@@ -12,6 +12,8 @@
 #include "Painter.h"
 #include "widget.h"
 
+#include <QGraphicsColorizeEffect>
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -26,16 +28,17 @@ public:
 
 private:
     Ui::MainWindow *ui;
-    RecvMessage *recvQSCDmessage;
-    RecvMessage *recvEEWMessage;
+    RecvWSMessage *recvQSCDMessage;
+    RecvWSMessage *recvEEWMessage;
+    RecvWSMessage *recvTIMEMessage;
 
     QTimer *systemTimer;
-    QDateTime dataTimeUTC;
+    QDateTime serverTimeUtc;
+    QDateTime dataTimeKST;
 
-    _BINARY_EEW_PACKET eewpacket;
-    _BINARY_QSCD_PACKET qscdpacket;
+    _BINARY_SMALL_EEWLIST_PACKET eewpacket;
 
-    bool isNowPlayMode;
+    bool isRealTimeMode;
     bool isStopMode;
     bool timeCheck(QDateTime);
 
@@ -46,15 +49,16 @@ private:
     QString dataSrc;
 
 private slots:
-    void rvEEWMessageFromThread(_BINARY_EEW_PACKET);
-    void rvQSCDMessageFromThread(_BINARY_QSCD_PACKET);
+    void rvTIMEMessageFromThread(int);
+    void rvEEWMessageFromThread(_BINARY_SMALL_EEWLIST_PACKET);
+    void rvQSCDMessageFromThread(_BINARY_PGA_PACKET);
 
     void doRepeatWork();
     void stopPBClicked();
     void playPBClicked();
-    void currentPBClicked();
-    void setDialAndLCD(QDateTime);
-    QDateTime findDataTimeUTC();
+    void realtimePBClicked();
+    void setDialAndLCDUsingKST(QDateTime);
+    QDateTime findDataTimeKSTFromDial();
 
     void dDialChanged(int);
     void hDialChanged(int);

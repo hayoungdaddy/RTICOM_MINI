@@ -65,7 +65,7 @@ public:
     Painter();
 
 public:
-    void paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET myeewp, _BINARY_QSCD_PACKET myqscd);
+    void paint(QPainter *painter, QPaintEvent *event, _BINARY_SMALL_EEWLIST_PACKET myeewp, _BINARY_PGA_PACKET myqscd);
 
     int chanID;
     QString dataSrc;
@@ -76,7 +76,7 @@ private:
     QPen textPen;
     QImage backImage;
 
-    _EVENT _event;
+    _EEWINFO _eewInfo;
     bool isEvent;
 
     QList<_STATION> maxPGAList;

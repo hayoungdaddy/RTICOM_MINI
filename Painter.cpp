@@ -60,10 +60,10 @@ Painter::Painter()
     epiFont.setPixelSize(15);
     textPen = QPen(Qt::black);
     backImage.load(":/images/skorea.png");
-    backImage = backImage.scaled(IMAGE_X_WIDTH, IMAGE_Y_HEIGHT, Qt::KeepAspectRatio);
+    backImage = backImage.scaled(SMALL_MAP_WIDTH, SMALL_MAP_HEIGHT, Qt::KeepAspectRatio);
 }
 
-void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET myeewp, _BINARY_QSCD_PACKET myqscd)
+void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_SMALL_EEWLIST_PACKET myeewp, _BINARY_PGA_PACKET myqscd)
 {
     QString chanS;
     if(chanID == 0) chanS = "East/West PGA";
@@ -72,7 +72,7 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET my
     else if(chanID == 3) chanS = "Horizontal PGA";
     else if(chanID == 4) chanS = "Total(3-Axis) PGA";
 
-    if(myqscd.numPGAsta > MAX_NUM_STATION)
+    if(myqscd.numStation > MAX_NUM_STATION)
         return;
 
     isEvent = false;
@@ -80,14 +80,14 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET my
     painter->fillRect(event->rect(), backImage);
     painter->save();
 
-    if(myeewp.numEVENT != 0)
+    if(myeewp.numEEW != 0)
     {
-        for(int i=0;i<myeewp.numEVENT;i++)
+        for(int i=0;i<myeewp.numEEW;i++)
         {
-            _event = myeewp.eventlist[i];
+            _eewInfo = myeewp.eewInfos[i];
 
-            if(myqscd.dataTime >= _event.eventEpochStartTime &&
-                    myqscd.dataTime < _event.eventEpochStartTime + EVENT_DURATION)
+            if(myqscd.dataTime >= _eewInfo.origintime &&
+                    myqscd.dataTime < _eewInfo.origintime + EVENT_DURATION)
             {
                 isEvent = true;
                 break;
@@ -100,7 +100,7 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET my
         // if maxPGAList is empty then insert staList into maxPGAList
         if(maxPGAList.isEmpty())
         {
-            for(int i=0;i<myqscd.numPGAsta;i++)
+            for(int i=0;i<myqscd.numStation;i++)
             {
                 _STATION sta = myqscd.staList[i];
                 maxPGAList.append(sta);
@@ -108,20 +108,20 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET my
         }
         else
         {
-            for(int i=0;i<myqscd.numPGAsta;i++)
+            for(int i=0;i<myqscd.numStation;i++)
             {
                 _STATION sta = myqscd.staList[i];
                 bool needInsert = true;
                 for(int j=0;j<maxPGAList.size();j++)
                 {
                     _STATION maxsta = maxPGAList.at(j);
-                    if(sta.index == maxsta.index)
+                    if(QString(sta.netSta).startsWith(QString(maxsta.netSta)))
                     {
-                        if(sta.lastPGA[0] > maxsta.lastPGA[0]) maxsta.lastPGA[0] = sta.lastPGA[0];
-                        if(sta.lastPGA[1] > maxsta.lastPGA[1]) maxsta.lastPGA[1] = sta.lastPGA[1];
-                        if(sta.lastPGA[2] > maxsta.lastPGA[2]) maxsta.lastPGA[2] = sta.lastPGA[2];
-                        if(sta.lastPGA[3] > maxsta.lastPGA[3]) maxsta.lastPGA[3] = sta.lastPGA[3];
-                        if(sta.lastPGA[4] > maxsta.lastPGA[4]) maxsta.lastPGA[4] = sta.lastPGA[4];
+                        if(sta.pga[0] > maxsta.pga[0]) maxsta.pga[0] = sta.pga[0];
+                        if(sta.pga[1] > maxsta.pga[1]) maxsta.pga[1] = sta.pga[1];
+                        if(sta.pga[2] > maxsta.pga[2]) maxsta.pga[2] = sta.pga[2];
+                        if(sta.pga[3] > maxsta.pga[3]) maxsta.pga[3] = sta.pga[3];
+                        if(sta.pga[4] > maxsta.pga[4]) maxsta.pga[4] = sta.pga[4];
                         needInsert = false;
                         maxPGAList.replace(j, maxsta);
                         break;
@@ -137,42 +137,43 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET my
         {
             _STATION sta = maxPGAList.at(i);
             QColor col;
-            col.setRgb(redColor(sta.lastPGA[chanID]), greenColor(sta.lastPGA[chanID]), blueColor(sta.lastPGA[chanID]));
+            col.setRgb(redColor(sta.pga[chanID]), greenColor(sta.pga[chanID]), blueColor(sta.pga[chanID]));
             QBrush brush = QBrush(col);
             painter->setBrush(brush);
-            painter->drawEllipse(QPoint(sta.mapX, sta.mapY), 5, 5);
+            painter->drawEllipse(QPoint(sta.smapX, sta.smapY), 5, 5);
         }
 
         // draw epicenter
         QBrush brush = QBrush(QColor(Qt::red));
         painter->setBrush(brush);
-        painter->drawEllipse(QPoint(_event.mapX, _event.mapY), 8, 8);
+        painter->drawEllipse(QPoint(_eewInfo.smapX, _eewInfo.smapY), 8, 8);
         painter->setBrush(Qt::white);
-        painter->drawRect(QRect(_event.mapX - 20, _event.mapY + 12, 40, 15));
+        painter->drawRect(QRect(_eewInfo.smapX - 20, _eewInfo.smapY + 12, 40, 16));
         painter->setPen(textPen);
         painter->setFont(epiFont);
-        painter->drawText(QRect(_event.mapX - 25, _event.mapY + 5, 50, 30), Qt::AlignCenter, "M" + QString::number(_event.mag, 'f', 1));
+        painter->drawText(QRect(_eewInfo.smapX - 25, _eewInfo.smapY + 5, 50, 30), Qt::AlignCenter, "M" + QString::number(_eewInfo.magnitude, 'f', 1));
 
-        int eqFlowTimeSec = myqscd.dataTime - _event.eventEpochStartTime;
+        int eqFlowTimeSec = myqscd.dataTime - _eewInfo.origintime;
 
         qreal radiusP = eqFlowTimeSec * P_VEL;
         qreal radiusS = eqFlowTimeSec * S_VEL;
         painter->setPen(Qt::blue);
         painter->setBrush(Qt::NoBrush);
-        painter->drawEllipse(QPointF(_event.mapX, _event.mapY), radiusP, radiusP);
+        painter->drawEllipse(QPointF(_eewInfo.smapX, _eewInfo.smapY), radiusP, radiusP);
         painter->setPen(Qt::red);
-        painter->drawEllipse(QPointF(_event.mapX, _event.mapY), radiusS, radiusS);
+        painter->drawEllipse(QPointF(_eewInfo.smapX, _eewInfo.smapY), radiusS, radiusS);
 
         painter->setPen(textPen);
         painter->setFont(textFont);
 
-        QDateTime et;
-        et.setTimeSpec(Qt::UTC);
-        et.setTime_t(_event.eventEpochStartTime);
+        QDateTime etKST;
+        etKST.setTimeSpec(Qt::UTC);
+        etKST.setTime_t(_eewInfo.origintime);
+        etKST = convertKST(etKST);
 
-        painter->drawText(QRect(500, 85, 300, 20), Qt::AlignRight, "EEW ID:" + QString::number(_event.evid));
-        painter->drawText(QRect(500, 105, 300, 20), Qt::AlignRight, et.toString("yyyy-MM-dd hh:mm:ss") + " (UTC)");
-        painter->drawText(QRect(500, 125, 300, 20), Qt::AlignRight, "M" + QString::number(_event.mag, 'f', 1));
+        painter->drawText(QRect(500, 120, 300, 25), Qt::AlignRight, "EEW ID:" + QString::number(_eewInfo.eew_evid));
+        painter->drawText(QRect(500, 145, 300, 25), Qt::AlignRight, etKST.toString("yyyy-MM-dd hh:mm:ss") + " (KST)");
+        painter->drawText(QRect(500, 170, 300, 25), Qt::AlignRight, "M" + QString::number(_eewInfo.magnitude, 'f', 1));
 
     }
     else
@@ -181,21 +182,21 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET my
 
         if(myqscd.dataTime != 0)
         {
-            for(int i=0;i<myqscd.numPGAsta;i++)
+            for(int i=0;i<myqscd.numStation;i++)
             {
                 _STATION sta = myqscd.staList[i];
                 QColor col;
-                col.setRgb(redColor(sta.lastPGA[chanID]), greenColor(sta.lastPGA[chanID]), blueColor(sta.lastPGA[chanID]));
+                col.setRgb(redColor(sta.pga[chanID]), greenColor(sta.pga[chanID]), blueColor(sta.pga[chanID]));
                 QBrush brush = QBrush(col);
                 painter->setBrush(brush);
-                painter->drawEllipse(QPoint(sta.mapX, sta.mapY), 5, 5);
+                painter->drawEllipse(QPoint(sta.smapX, sta.smapY), 5, 5);
             }
         }
         else
         {
             painter->setPen(textPen);
             painter->setFont(textFont);
-            painter->drawText(QRect(0, IMAGE_Y_HEIGHT/2 - 50, IMAGE_X_WIDTH, 25),
+            painter->drawText(QRect(0, SMALL_MAP_HEIGHT/2 - 50, SMALL_MAP_WIDTH, 25),
                               Qt::AlignCenter, "There is no available data");
         }
     }
@@ -203,9 +204,10 @@ void Painter::paint(QPainter *painter, QPaintEvent *event, _BINARY_EEW_PACKET my
     painter->restore();
     painter->setPen(textPen);
     painter->setFont(textFont);
-    painter->drawText(QRect(500, 5, 300, 20), Qt::AlignRight, dataSrc.section(",", 0, 0));
-    painter->drawText(QRect(500, 25, 300, 20), Qt::AlignRight, dataSrc.section(",", 1, 1));
-    painter->drawText(QRect(500, 45, 300, 20), Qt::AlignRight, chanS);
+    painter->drawText(QRect(500, 5, 300, 25), Qt::AlignRight, dataSrc.section(",", 0, 0));
+    painter->drawText(QRect(500, 30, 300, 25), Qt::AlignRight, dataSrc.section(",", 1, 1));
+    painter->drawText(QRect(500, 55, 300, 25), Qt::AlignRight, dataSrc.section(",", 2, 2));
+    painter->drawText(QRect(500, 80, 300, 25), Qt::AlignRight, chanS);
 }
 
 int Painter::redColor(float gal)

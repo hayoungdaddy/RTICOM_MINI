@@ -7,66 +7,79 @@
 #include <QMultiMap>
 #include <QDebug>
 #include <QFile>
-#include "math.h"
+#include <QtMath>
 
-#define VERSION 1.0
+#define VERSION 1.1
 
 #define EVENT_SECONDS_FOR_START -5
-#define EVENT_DURATION 120
 #define SECNODS_FOR_ALIGN_QSCD 10
-#define PI 3.14159265358979323846
-#define DATA_DURATION 86400
+#define NUM_FOR_QSCD_BLOCK 100
+#define EVENT_DURATION 120
 #define MAX_NUM_STATION 1000
-#define MAX_NUM_EVENT 20
+#define KEEP_LARGE_DATA_DURATION 86400
+#define MAX_SMALL_NUM_EEW 100
 
 #define STA_LEN 10
-#define CHAN_LEN 5
-#define NET_LEN 4
-#define LOC_LEN 4
 
-#define IMAGE_X_WIDTH 814
-#define IMAGE_Y_HEIGHT 768
+#define SMALL_MAP_WIDTH     814
+#define SMALL_MAP_HEIGHT    768
 
 #define P_VEL 6.5
 #define S_VEL 3.5
 
+// _STATION
 typedef struct _station
 {
-    int index;
-    char netsta[STA_LEN];
-    char staType;
+    char netSta[STA_LEN];
     float lat;
     float lon;
-    int mapX;
-    int mapY;
+    int lmapX;
+    int lmapY;
+    int smapX;
+    int smapY;
     int inUse;
-    int lastPGATime;
-    float lastPGA[5];
+    int maxPgaTime[5];
+    float maxPga[5];
+    int pgaTime;
+    float pga[5];
 } _STATION;
 
-typedef struct _event
-{
-    int evid;        // same with eew_evid
-    int eventEpochStartTime;
-    float lat;
-    float lon;
-    int mapX;
-    int mapY;
-    float mag;
-} _EVENT;
+//_EEWINFO, _BINARY_EEWLIST_PACKET
+enum nudMessageType {NEW, UPDATE, DELETE};
+enum MessageCategory {LIVE, TEST};
 
-typedef struct _binary_eew_packet
+typedef struct _eewinfo
 {
-    int numEVENT;
-    _EVENT eventlist[MAX_NUM_EVENT];
-} _BINARY_EEW_PACKET;
+    int eew_evid;
+    int version;
+    enum MessageCategory message_category;
+    enum nudMessageType message_type;
+    float magnitude;
+    float latitude;
+    float longitude;
+    float depth;
+    int origintime;
+    int number_stations;
+    int lmapX;
+    int lmapY;
+    int smapX;
+    int smapY;
+    char location[100];
+    char lddate[12];
+} _EEWINFO;
 
-typedef struct _binary_qscd_packet
+
+typedef struct _binary_small_eewlist_packet {
+    int numEEW;
+    _EEWINFO eewInfos[MAX_SMALL_NUM_EEW];
+} _BINARY_SMALL_EEWLIST_PACKET;
+
+typedef struct _binary_pga_packet
 {
-    int numPGAsta;
+    int numStation;
     int dataTime;
     _STATION staList[MAX_NUM_STATION];
-} _BINARY_QSCD_PACKET;
+} _BINARY_PGA_PACKET;
 
 static QDateTime convertKST(QDateTime utc)
 {

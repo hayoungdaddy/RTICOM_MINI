@@ -56,7 +56,7 @@
 Widget::Widget(Painter *mypainter, QWidget *parent)
     : QWidget(parent), mypainter(mypainter)
 {
-    setFixedSize(IMAGE_X_WIDTH, IMAGE_Y_HEIGHT);
+    setFixedSize(SMALL_MAP_WIDTH, SMALL_MAP_HEIGHT);
 }
 
 void Widget::setChanID(int chan)
@@ -71,7 +71,7 @@ void Widget::setDataSrc(QString src)
     mypainter->dataSrc = dataSrc;
 }
 
-void Widget::animate(_BINARY_EEW_PACKET eewpacket, _BINARY_QSCD_PACKET qscdpacket)
+void Widget::animate(_BINARY_SMALL_EEWLIST_PACKET eewpacket, _BINARY_PGA_PACKET qscdpacket)
 {
     myeewpacket = eewpacket;
     myqscdpacket = qscdpacket;
